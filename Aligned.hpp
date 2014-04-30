@@ -5,28 +5,18 @@
 #include <memory>
 #include "RoundUp.hpp"
 
-//#define ALIGNED_BYTES_SIZE(sizeOfTPaddedToAlignment) sizeof(T) + sizeOfTPaddedToAlignment - 1
-//#define ALIGNED_ALIGNMENT_CAST(expressionToCast) *reinterpret_cast<T *>(expressionToCast)
-//#define ALIGNED_ALIGNMENT(pBytes, sizeOfTPaddedToAlignment) ALIGNED_ALIGNMENT_CAST(intptr_t(pBytes) + (sizeOfTPaddedToAlignment - 1) & ~intptr_t(sizeOfTPaddedToAlignment - 1))
-//#define ALIGNED_INDEX_ALIGNMENT(pBytes, sizeOfTPaddedToAlignment, index) (ALIGNED_ALIGNMENT(pBytes, sizeOfTPaddedToAlignment) + (SizeOfTPaddedToAlignment * index))
-
 template<typename T, size_t Alignment = -1>
 class Aligned {
 	static const size_t SizeOfTPaddedToAlignment = RoundUp<sizeof(T), Alignment>::value;
-	//uint8_t bytes[sizeof(T) +SizeOfTPaddedToAlignment - 1];
 	uint8_t bytes[sizeof(T) + SizeOfTPaddedToAlignment - 1];
 public:
 	Aligned() {}
-	Aligned(T const & value) {
-		reference() = value;
-	}
+	Aligned(T const & value) { reference() = value; }
 	T & reference() {
 		return *reinterpret_cast<T *>(intptr_t(bytes) + (SizeOfTPaddedToAlignment - 1) & ~intptr_t(SizeOfTPaddedToAlignment - 1));
 		//return ALIGNED_ALIGNMENT(bytes, SizeOfTPaddedToAlignment);
 	}
-	T const & reference() const {
-		return reference();
-	}
+	T const & reference() const { return reference(); }
 };
 
 template<typename T>
@@ -40,6 +30,7 @@ public:
 		return *reinterpret_cast<T *>(intptr_t(pBytes.get()) + (sizeOfTPaddedToAlignment - 1) & ~intptr_t(sizeOfTPaddedToAlignment - 1));
 		//return ALIGNED_ALIGNMENT(pBytes.get(), sizeOfTPaddedToAlignment);
 	}
+	T const & reference() const { return reference(); }
 };
 
 template<typename T, size_t Size, size_t Alignment>
@@ -66,6 +57,7 @@ public:
 		return *reinterpret_cast<T *>((intptr_t(pBytes.get()) + (SizeOfTPaddedToAlignment - 1) & ~intptr_t(SizeOfTPaddedToAlignment - 1)) + (SizeOfTPaddedToAlignment * index));
 		//return ALIGNED_INDEX_ALIGNMENT(pBytes.get(), SizeOfTPaddedToAlignment, index);
 	}
+	T const & operator[](size_t index) const { return operator[](index); }
 };
 
 template<typename T>
@@ -78,6 +70,7 @@ public:
 	T & operator[](size_t index) {
 		return *reinterpret_cast<T *>((intptr_t(pBytes.get()) + (sizeOfTPaddedToAlignment - 1) & ~intptr_t(sizeOfTPaddedToAlignment - 1)) + (sizeOfTPaddedToAlignment * index));
 	}
+	T const & operator[](size_t index) const { return operator[](index); }
 };
 
 #undef ALIGNMENT_EQUATION
