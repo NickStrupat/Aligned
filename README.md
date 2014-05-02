@@ -31,6 +31,3 @@ Heap allocated arrays with `Alignment` unknown at compile time are supported wit
 Heap allocated arrays with size and alignment unkown at compile time are supported with
 
     Aligned<Foo[]> alignedFoos(12, cacheLineSize);
-
-More to come!
-`std::tuple<T...>` support
