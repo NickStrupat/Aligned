@@ -1,0 +1,3 @@
+[submodule "CacheLineSize"]
+	path = CacheLineSize
+	url = https://github.com/NickStrupat/CacheLineSize
