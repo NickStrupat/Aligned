@@ -1,78 +1,78 @@
 #ifndef ALIGNED_HPP_INCLUDED
 #define ALIGNED_HPP_INCLUDED
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include "AlignedBase.hpp"
 #include "RoundUp.hpp"
 
-template<typename T, size_t Alignment = -1>
-class Aligned {
-	static const size_t SizeOfTPaddedToAlignment = RoundUp<sizeof(T), Alignment>::value;
-	uint8_t bytes[sizeof(T) + SizeOfTPaddedToAlignment - 1];
+template<typename T, std::size_t Alignment = -1>
+class Aligned : AlignedBase<Alignment> {
+	static const std::size_t SizeOfTPaddedToAlignmentLessOne = RoundUp<sizeof(T), Alignment>::value - 1;
+protected:
+	uint8_t bytes[SizeOfTPaddedToAlignmentLessOne + SizeOfTPaddedToAlignmentLessOne + 1];
 public:
+	class PaddedType { uint8_t bytes[RoundUp<sizeof(T), Alignment>::value]; };
 	Aligned() {}
-	Aligned(T const & value) { reference() = value; }
-	T & reference() {
-		return *reinterpret_cast<T *>(intptr_t(bytes) + (SizeOfTPaddedToAlignment - 1) & ~intptr_t(SizeOfTPaddedToAlignment - 1));
-		//return ALIGNED_ALIGNMENT(bytes, SizeOfTPaddedToAlignment);
+	Aligned(T const & value) { ref() = value; }
+	T & ref() {
+		return *reinterpret_cast<T *>(uintptr_t(bytes) + SizeOfTPaddedToAlignmentLessOne & ~uintptr_t(SizeOfTPaddedToAlignmentLessOne));
 	}
-	T const & reference() const { return reference(); }
+	T const & ref() const { return ref(); }
 };
 
-template<typename T>
-class Aligned<T, -1> {
-	size_t const sizeOfTPaddedToAlignment;
-	std::unique_ptr<uint8_t[]> const pBytes;
-public:
-	Aligned(size_t alignment) : sizeOfTPaddedToAlignment(roundUp(sizeof(T), alignment)), pBytes(new uint8_t[sizeof(T) + sizeOfTPaddedToAlignment - 1]) {}
-	Aligned(T const & value, size_t alignment) : Aligned(alignment) { reference() = value; }
-	T & reference() {
-		return *reinterpret_cast<T *>(intptr_t(pBytes.get()) + (sizeOfTPaddedToAlignment - 1) & ~intptr_t(sizeOfTPaddedToAlignment - 1));
-		//return ALIGNED_ALIGNMENT(pBytes.get(), sizeOfTPaddedToAlignment);
-	}
-	T const & reference() const { return reference(); }
-};
-
-template<typename T, size_t Size, size_t Alignment>
-class Aligned<T[Size], Alignment> {
-	static const size_t SizeOfTPaddedToAlignment = RoundUp<sizeof(T), Alignment>::value;
+template<typename T, std::size_t Size, std::size_t Alignment>
+class Aligned<T[Size], Alignment> : AlignedBase<Alignment> {
+	static const std::size_t SizeOfTPaddedToAlignment = RoundUp<sizeof(T), Alignment>::value;
 	uint8_t bytes[sizeof(T) + (SizeOfTPaddedToAlignment * Size) - 1];
 public:
-	Aligned() {};
-	T & operator[](size_t index) {
-		return *reinterpret_cast<T *>((intptr_t(bytes) + (SizeOfTPaddedToAlignment - 1) & ~intptr_t(SizeOfTPaddedToAlignment - 1)) + (SizeOfTPaddedToAlignment * index));
-		//return ALIGNED_INDEX_ALIGNMENT(bytes, SizeOfTPaddedToAlignment, index);
+	Aligned() {}
+	T & operator[](std::size_t index) {
+		return *reinterpret_cast<T *>((uintptr_t(bytes) + (SizeOfTPaddedToAlignment - 1) & ~uintptr_t(SizeOfTPaddedToAlignment - 1)) + (SizeOfTPaddedToAlignment * index));
 	}
-	T const & operator[](size_t index) const { return operator[](index); }
+	T const & operator[](std::size_t index) const { return operator[](index); }
 };
 
-template<typename T, size_t Alignment>
-class Aligned<T[], Alignment> {
-	static const size_t SizeOfTPaddedToAlignment = RoundUp<sizeof(T), Alignment>::value;
+template<typename T, std::size_t Alignment>
+class Aligned<T[], Alignment> : AlignedBase<Alignment>{
+	static const std::size_t SizeOfTPaddedToAlignment = RoundUp<sizeof(T), Alignment>::value;
 	std::unique_ptr<uint8_t[]> const pBytes;
 	Aligned();
 public:
-	Aligned(size_t size) : pBytes(new uint8_t[sizeof(T) + (SizeOfTPaddedToAlignment * size) - 1]) {}
-	T & operator[](size_t index) {
-		return *reinterpret_cast<T *>((intptr_t(pBytes.get()) + (SizeOfTPaddedToAlignment - 1) & ~intptr_t(SizeOfTPaddedToAlignment - 1)) + (SizeOfTPaddedToAlignment * index));
-		//return ALIGNED_INDEX_ALIGNMENT(pBytes.get(), SizeOfTPaddedToAlignment, index);
+	Aligned(std::size_t size) : pBytes(new uint8_t[sizeof(T) + (SizeOfTPaddedToAlignment * size) - 1]) {}
+	T & operator[](std::size_t index) {
+		return *reinterpret_cast<T *>((uintptr_t(pBytes.get()) + (SizeOfTPaddedToAlignment - 1) & ~uintptr_t(SizeOfTPaddedToAlignment - 1)) + (SizeOfTPaddedToAlignment * index));
 	}
-	T const & operator[](size_t index) const { return operator[](index); }
+	T const & operator[](std::size_t index) const { return operator[](index); }
 };
 
 template<typename T>
-class Aligned<T[], -1> {
-	size_t const sizeOfTPaddedToAlignment;
+class Aligned<T, -1> : AlignedBase<-1>{
+	std::size_t const sizeOfTPaddedToAlignmentLessOne;
+	std::unique_ptr<uint8_t[]> const pBytes;
+public:
+	Aligned(std::size_t alignment = AlignedBase::cacheLineSize()) : AlignedBase(alignment), sizeOfTPaddedToAlignmentLessOne(roundUp(sizeof(T), alignment) - 1), pBytes(new uint8_t[sizeof(T) +sizeOfTPaddedToAlignmentLessOne]) {}
+	Aligned(T const & value, std::size_t alignment) : Aligned(alignment) { ref() = value; }
+	T & ref() {
+		return *reinterpret_cast<T *>(uintptr_t(pBytes.get()) + sizeOfTPaddedToAlignmentLessOne & ~uintptr_t(sizeOfTPaddedToAlignmentLessOne));
+	}
+	T const & ref() const { return ref(); }
+};
+
+template<typename T>
+class Aligned<T[], -1> : AlignedBase<-1>{
+	std::size_t const sizeOfTPaddedToAlignment;
 	std::unique_ptr<uint8_t> const pBytes;
 	Aligned();
 public:
-	Aligned(size_t size, size_t alignment) : sizeOfTPaddedToAlignment(roundUp(sizeof(T), alignment)), pBytes(new uint8_t[sizeof(T) + (sizeOfTPaddedToAlignment * size) - 1]) {}
-	T & operator[](size_t index) {
-		return *reinterpret_cast<T *>((intptr_t(pBytes.get()) + (sizeOfTPaddedToAlignment - 1) & ~intptr_t(sizeOfTPaddedToAlignment - 1)) + (sizeOfTPaddedToAlignment * index));
+	Aligned(std::size_t size, std::size_t alignment = AlignedBase::cacheLineSize())
+		: AlignedBase<-1>(alignment),
+		sizeOfTPaddedToAlignment(roundUp(sizeof(T), alignment)), pBytes(new uint8_t[sizeof(T) + (sizeOfTPaddedToAlignment * size) - 1]) {}
+	T & operator[](std::size_t index) {
+		return *reinterpret_cast<T *>((uintptr_t(pBytes.get()) + (sizeOfTPaddedToAlignment - 1) & ~uintptr_t(sizeOfTPaddedToAlignment - 1)) + (sizeOfTPaddedToAlignment * index));
 	}
-	T const & operator[](size_t index) const { return operator[](index); }
+	T const & operator[](std::size_t index) const { return operator[](index); }
 };
-
-#undef ALIGNMENT_EQUATION
 
 #endif
