@@ -1,14 +1,18 @@
 #ifndef ROUNDUP_HPP_INCLUDED
 #define ROUNDUP_HPP_INCLUDED
 
+#define ROUNDUP(from, to) from + to - 1 - (from - 1) % to
+
 template<typename T>
 inline T roundUp(T from, T to) {
-	return from + to - 1 - (from - 1) % to;
+	return ROUNDUP(from, to);
 }
 
-template<size_t From, size_t To>
+template<typename T, T From, T To>
 struct RoundUp {
-	enum { value = From + To - 1 - (From -1) % To };
+	static const T Result = ROUNDUP(From, To);
 };
+
+#undef ROUNDUP
 
 #endif
