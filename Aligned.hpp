@@ -20,8 +20,8 @@ public:
 		: pValue(ALIGNED_POINTER(T, bytes, SizeOfTPaddedToAlignment))
 	{ *pValue = T(value); }
 	~Aligned() { pValue->~T(); }
-	T & Get() { return *pValue; }
-	T const & Get() const { return *pValue; }
+	T & Ref() { return *pValue; }
+	T const & Ref() const { return *pValue; }
 };
 
 template<typename T>
@@ -35,8 +35,8 @@ public:
 		pValue(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
 	{ *pValue = T(value); }
 	~Aligned() { pValue->~T(); }
-	T & Get() { return *pValue; }
-	T const & Get() const { return *pValue; }
+	T & Ref() { return *pValue; }
+	T const & Ref() const { return *pValue; }
 };
 
 template<typename T, std::size_t Size, std::size_t Alignment>
