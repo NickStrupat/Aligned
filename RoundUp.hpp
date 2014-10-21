@@ -1,18 +1,18 @@
-#ifndef ROUNDUP_HPP_INCLUDED
-#define ROUNDUP_HPP_INCLUDED
+#ifndef ROUND_UP_HPP_INCLUDED
+#define ROUND_UP_HPP_INCLUDED
 
-#define ROUNDUP(from, to) from + to - 1 - (from - 1) % to
+#define ROUND_UP(from, to) from + to - 1 - (from - 1) % to
 
 template<typename T>
 inline T roundUp(T from, T to) {
-	return ROUNDUP(from, to);
+	return ROUND_UP(from, to);
 }
 
 template<typename T, T From, T To>
 struct RoundUp {
-	static const T Result = ROUNDUP(From, To);
+	static const T Result = ROUND_UP(From, To);
 };
 
-#undef ROUNDUP
+#undef ROUND_UP
 
 #endif

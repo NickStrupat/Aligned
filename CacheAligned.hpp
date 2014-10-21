@@ -1,8 +1,7 @@
-#ifndef CACHEALIGNED_HPP_INCLUDED
-#define CACHEALIGNED_HPP_INCLUDED
+#ifndef CACHE_ALIGNED_HPP_INCLUDED
+#define CACHE_ALIGNED_HPP_INCLUDED
 
 #include <cstddef>
-#include <cstdint>
 #include "CacheAlignedBase.hpp"
 
 template<typename T>
