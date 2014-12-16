@@ -1,7 +1,7 @@
 #ifndef ROUND_UP_HPP_INCLUDED
 #define ROUND_UP_HPP_INCLUDED
 
-#define ROUND_UP(from, to) from + to - 1 - (from - 1) % to
+#define ROUND_UP(from, to) (from + to - 1 - (from - 1) % to)
 
 template<typename T>
 inline T roundUp(T from, T to) {
