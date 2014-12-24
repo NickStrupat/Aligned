@@ -31,6 +31,6 @@ protected:
 	}
 };
 
-#undef ALIGNMENT_MUST_BE_A_MULTIPLE_OF_2
+#undef ALIGNMENT_MUST_BE_A_POWER_OF_2_ERROR_MESSAGE
 
 #endif
