@@ -1,5 +1,5 @@
-#ifndef ROUND_UP_HPP_INCLUDED
-#define ROUND_UP_HPP_INCLUDED
+#ifndef ROUNDUP_HPP_INCLUDED
+#define ROUNDUP_HPP_INCLUDED
 
 #define ROUND_UP(from, to) (from + to - 1 - (from - 1) % to)
 

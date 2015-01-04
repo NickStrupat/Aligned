@@ -1,5 +1,5 @@
-#ifndef ALIGNED_BASE_HPP_INCLUDED
-#define ALIGNED_BASE_HPP_INCLUDED
+#ifndef ALIGNEDBASE_HPP_INCLUDED
+#define ALIGNEDBASE_HPP_INCLUDED
 
 #include <cstddef>
 #include <exception>

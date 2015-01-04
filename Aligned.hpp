@@ -5,22 +5,26 @@
 #include <cstdint>
 #include <memory>
 #include <type_traits>
-#include "AlignedArrayBase.hpp"
-#include "AlignedBase.hpp"
 
-#define ALIGNED_BYTES_SIZE(alignment, sizeOfTPaddedToAlignment) alignment + sizeOfTPaddedToAlignment - 1
-#define ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment) reinterpret_cast<T *>(uintptr_t(bytes) + (sizeOfTPaddedToAlignment - 1) & ~uintptr_t(sizeOfTPaddedToAlignment - 1))
-#define ALIGNED_ARRAY_BYTES_SIZE(T, sizeOfTPaddedToAlignment, size) sizeof(T) + (sizeOfTPaddedToAlignment * size) - 1
-#define ALIGNED_ARRAY_INDEX_POINTER(T, pFirstElement, sizeOfTPaddedToAlignment, index) reinterpret_cast<T *>(uintptr_t(pFirstElement) + (sizeOfTPaddedToAlignment * index))
+#include "AlignedBase.hpp"
+#include "AlignedArrayConstructorCaller.hpp"
+#include "AlignedArrayDestructorCaller.hpp"
+
+#define ALIGNED_BYTES_SIZE(alignment, sizeOfTPaddedToAlignment) (alignment + sizeOfTPaddedToAlignment - 1)
+#define ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment) (reinterpret_cast<T *>(uintptr_t(bytes) + (sizeOfTPaddedToAlignment - 1) & ~uintptr_t(sizeOfTPaddedToAlignment - 1)))
+#define ALIGNED_ARRAY_BYTES_SIZE(T, sizeOfTPaddedToAlignment, size) (sizeof(T) + (sizeOfTPaddedToAlignment * size) - 1)
+#define ALIGNED_ARRAY_INDEX_POINTER(T, pFirstElement, sizeOfTPaddedToAlignment, index) (reinterpret_cast<T *>(uintptr_t(pFirstElement) + (sizeOfTPaddedToAlignment * index)))
 
 template<typename T, std::size_t Alignment = -1>
 class Aligned : AlignedBase<T, Alignment> {
 	uint8_t bytes[ALIGNED_BYTES_SIZE(Alignment, sizeOfTPaddedToAlignment)];
-	T * pValue;
-public:
-	Aligned(T const & value = T())
+	T * const pValue;
+	Aligned()
 		: pValue(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment))
-	{ *pValue = T(value); }
+	{}
+public:
+	template<typename... Args>
+	Aligned(Args &&... args) : Aligned() { new (pValue) T(args...); }
 	~Aligned() { pValue->T::~T(); }
 	T & Ref() { return *pValue; }
 	T const & Ref() const { return *pValue; }
@@ -29,50 +33,18 @@ public:
 template<typename T>
 class Aligned<T, -1> : AlignedBase<T, -1> {
 	std::unique_ptr<uint8_t[]> const pBytes;
-	T * pValue;
-public:
-	Aligned(std::size_t alignment, T const & value = T())
+	T * const pValue;
+	Aligned(std::size_t alignment)
 		: AlignedBase(alignment)
 		, pBytes(new uint8_t[ALIGNED_BYTES_SIZE(alignment, sizeOfTPaddedToAlignment)])
 		, pValue(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
-	{ *pValue = T(value);	}
+	{}
+public:
+	template<typename... Args>
+	Aligned(std::size_t alignment, Args &&... args) : Aligned() { new (pValue) T(args...); }
 	~Aligned() { pValue->T::~T(); }
 	T & Ref() { return *pValue; }
 	T const & Ref() const { return *pValue; }
-};
-
-template<typename T, bool IsTriviallyDefaultConstructible = std::is_trivially_default_constructible<T>::value>
-class AlignedArrayConstructorCaller {
-	AlignedArrayConstructorCaller();
-public:
-	static void Call(std::size_t const, T * const, std::size_t const) {}
-};
-
-template<typename T>
-class AlignedArrayConstructorCaller<T, false> {
-	AlignedArrayConstructorCaller();
-public:
-	static void Call(std::size_t const size, T * const pFirstElement, std::size_t const sizeOfTPaddedToAlignment) {
-		for (std::size_t i = 0; i != size; ++i)
-			new (ALIGNED_ARRAY_INDEX_POINTER(T, pFirstElement, sizeOfTPaddedToAlignment, i)) T;
-	}
-};
-
-template<typename T, bool IsTriviallyDestructible = std::is_trivially_destructible<T>::value>
-class AlignedArrayDestructorCaller {
-	AlignedArrayDestructorCaller();
-public:
-	static void Call(std::size_t const, T * const, std::size_t const) {}
-};
-
-template<typename T>
-class AlignedArrayDestructorCaller<T, false> {
-	AlignedArrayDestructorCaller();
-public:
-	static void Call(std::size_t const size, T * const pFirstElement, std::size_t const sizeOfTPaddedToAlignment) {
-		for (std::size_t i = 0; i != size; ++i)
-			ALIGNED_ARRAY_INDEX_POINTER(T, pFirstElement, sizeOfTPaddedToAlignment, i)->T::~T();
-	}
 };
 
 template<typename T, std::size_t Size, std::size_t Alignment>

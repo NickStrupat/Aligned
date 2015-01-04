@@ -1,5 +1,5 @@
-#ifndef IS_POWER_OF_TWO_HPP_INCLUDED
-#define IS_POWER_OF_TWO_HPP_INCLUDED
+#ifndef ISPOWEROFTWO_HPP_INCLUDED
+#define ISPOWEROFTWO_HPP_INCLUDED
 
 #define IS_POWER_OF_TWO(x) ((x != 0) && ((x & (x - 1)) == 0))
 
