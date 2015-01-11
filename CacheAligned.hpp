@@ -7,8 +7,8 @@
 template<typename T>
 class CacheAligned : public Aligned<T>, CacheAlignedBase<T> {
 public:
-	CacheAligned() : Aligned(cacheLineSize()) {}
-	CacheAligned(T const & value) : Aligned(cacheLineSize(), value) {}
+	template<typename... Args>
+	CacheAligned(Args &&... args) : Aligned(cacheLineSize()) {}
 };
 
 template<typename T>

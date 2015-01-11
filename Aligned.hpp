@@ -19,12 +19,11 @@ template<typename T, std::size_t Alignment = -1>
 class Aligned : AlignedBase<T, Alignment> {
 	uint8_t bytes[ALIGNED_BYTES_SIZE(Alignment, sizeOfTPaddedToAlignment)];
 	T * const pValue;
-	Aligned()
-		: pValue(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment))
-	{}
+	Aligned(Aligned const &);
+	Aligned const & operator=(Aligned const &);
 public:
 	template<typename... Args>
-	Aligned(Args &&... args) : Aligned() { new (pValue) T(args...); }
+	Aligned(Args &&... args) : pValue(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment)) { new (pValue)T(args...); }
 	~Aligned() { pValue->T::~T(); }
 	T & Ref() { return *pValue; }
 	T const & Ref() const { return *pValue; }
@@ -34,14 +33,14 @@ template<typename T>
 class Aligned<T, -1> : AlignedBase<T, -1> {
 	std::unique_ptr<uint8_t[]> const pBytes;
 	T * const pValue;
-	Aligned(std::size_t alignment)
-		: AlignedBase(alignment)
-		, pBytes(new uint8_t[ALIGNED_BYTES_SIZE(alignment, sizeOfTPaddedToAlignment)])
-		, pValue(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
-	{}
 public:
 	template<typename... Args>
-	Aligned(std::size_t alignment, Args &&... args) : Aligned() { new (pValue) T(args...); }
+	Aligned(std::size_t alignment, Args &&... args) : AlignedBase(alignment)
+		, pBytes(new uint8_t[ALIGNED_BYTES_SIZE(alignment, sizeOfTPaddedToAlignment)])
+		, pValue(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
+	{
+		new (pValue)T(args...);
+	}
 	~Aligned() { pValue->T::~T(); }
 	T & Ref() { return *pValue; }
 	T const & Ref() const { return *pValue; }
