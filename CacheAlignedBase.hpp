@@ -10,7 +10,7 @@ template<typename T>
 class CacheAlignedBase {
 protected:
 	CacheAlignedBase() {}
-	inline static std::size_t cacheLineSize() {
+	static std::size_t cacheLineSize() {
 		static std::size_t cacheLineSize = CacheLineSize();
 		return cacheLineSize;
 	}
