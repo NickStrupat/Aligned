@@ -23,7 +23,7 @@ class Aligned : AlignedBase<T, Alignment> {
 	Aligned const & operator=(Aligned const &);
 public:
 	template<typename... Args>
-	Aligned(Args &&... args) : pValue(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment)) { new (pValue)T(args...); }
+	Aligned(Args &&... args) : pValue(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment)) { new (pValue)T(std::forward<Args>(args)...); }
 	~Aligned() { pValue->T::~T(); }
 	T & Ref() { return *pValue; }
 	T const & Ref() const { return *pValue; }
@@ -39,7 +39,7 @@ public:
 		, pBytes(new uint8_t[ALIGNED_BYTES_SIZE(alignment, sizeOfTPaddedToAlignment)])
 		, pValue(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
 	{
-		new (pValue)T(args...);
+		new (pValue)T(std::forward<Args>(args)...);
 	}
 	~Aligned() { pValue->T::~T(); }
 	T & Ref() { return *pValue; }

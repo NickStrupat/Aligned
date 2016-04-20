@@ -2,6 +2,7 @@
 #define CACHEALIGNED_HPP_INCLUDED
 
 #include <cstddef>
+#include <type_traits>
 #include "Aligned.hpp"
 #include "CacheAlignedBase.hpp"
 
@@ -9,7 +10,7 @@ template<typename T>
 class CacheAligned : public Aligned<T>, CacheAlignedBase<T> {
 public:
 	template<typename... Args>
-	CacheAligned(Args &&... args) : Aligned(cacheLineSize(), args...) {}
+	CacheAligned(Args &&... args) : Aligned(cacheLineSize(), std::forward<Args>(args)...) {}
 };
 
 template<typename T>
