@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 #include <memory>
 #include <type_traits>
 
@@ -60,6 +61,13 @@ public:
 	{
 		AlignedArrayConstructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
+	Aligned(std::initializer_list<T> const &  list)
+		: pFirstElement(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment))
+	{
+		int i = 0;
+		for (auto it = list.begin(); it != list.end(); ++it)
+			this->element(i++) = *it;
+	}
 	~Aligned() {
 		AlignedArrayDestructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
@@ -84,6 +92,13 @@ public:
 	{
 		AlignedArrayConstructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
+	Aligned(std::initializer_list<T> const & list)
+		: pFirstElement(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment))
+	{
+		int i = 0;
+		for (auto it = list.begin(); it != list.end(); ++it)
+			this->element(i++) = *it;
+	}
 	~Aligned() {
 		AlignedArrayDestructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
@@ -99,8 +114,9 @@ class Aligned<T[], -1> : AlignedBase<T, -1> {
 	std::size_t const size;
 	std::unique_ptr<uint8_t[]> const pBytes;
 	T * const pFirstElement;
-	T & element(std::size_t index) { return *ALIGNED_ARRAY_INDEX_POINTER(T, pFirstElement, sizeOfTPaddedToAlignment, index); }
 	Aligned();
+protected:
+	T & element(std::size_t index) { return *ALIGNED_ARRAY_INDEX_POINTER(T, pFirstElement, sizeOfTPaddedToAlignment, index); }
 public:
 	Aligned(std::size_t alignment, std::size_t size)
 		: AlignedBase<T, -1>(alignment)
@@ -109,6 +125,16 @@ public:
 		, pFirstElement(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
 	{
 		AlignedArrayConstructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
+	}
+	Aligned(std::size_t alignment, std::initializer_list<T> const & list)
+		: AlignedBase<T, -1>(alignment)
+		, size(list.size())
+		, pBytes(new uint8_t[ALIGNED_ARRAY_BYTES_SIZE(T, sizeOfTPaddedToAlignment, size)])
+		, pFirstElement(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
+	{
+		int i = 0;
+		for (auto it = list.begin(); it != list.end(); ++it)
+			this->element(i++) = *it;
 	}
 	~Aligned() {
 		AlignedArrayDestructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
