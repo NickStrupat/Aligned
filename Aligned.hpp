@@ -10,6 +10,7 @@
 #include "AlignedBase.hpp"
 #include "AlignedArrayConstructorCaller.hpp"
 #include "AlignedArrayDestructorCaller.hpp"
+#include "InitializerListLongerThanSizeException.hpp"
 
 #define ALIGNED_BYTES_SIZE(alignment, sizeOfTPaddedToAlignment) (alignment + sizeOfTPaddedToAlignment - 1)
 #define ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment) (reinterpret_cast<T *>(uintptr_t(bytes) + (sizeOfTPaddedToAlignment - 1) & ~uintptr_t(sizeOfTPaddedToAlignment - 1)))
@@ -61,13 +62,18 @@ public:
 	{
 		AlignedArrayConstructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
-	Aligned(std::initializer_list<T> const &  list)
+	Aligned(std::size_t size, std::initializer_list<T> const & list)
 		: pFirstElement(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment))
 	{
+		if (size < list.size())
+			throw InitializerListLongerThanSizeException();
 		int i = 0;
 		for (auto it = list.begin(); it != list.end(); ++it)
 			this->element(i++) = *it;
 	}
+	Aligned(std::initializer_list<T> const &  list)
+		: Aligned(list.size(), list)
+	{}
 	~Aligned() {
 		AlignedArrayDestructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
@@ -92,13 +98,18 @@ public:
 	{
 		AlignedArrayConstructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
-	Aligned(std::initializer_list<T> const & list)
+	Aligned(std::size_t size, std::initializer_list<T> const & list)
 		: pFirstElement(ALIGNED_POINTER(T, bytes, sizeOfTPaddedToAlignment))
 	{
+		if (size < list.size())
+			throw InitializerListLongerThanSizeException();
 		int i = 0;
 		for (auto it = list.begin(); it != list.end(); ++it)
 			this->element(i++) = *it;
 	}
+	Aligned(std::initializer_list<T> const & list)
+		: Aligned(list.size(), list)
+	{}
 	~Aligned() {
 		AlignedArrayDestructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
@@ -126,16 +137,21 @@ public:
 	{
 		AlignedArrayConstructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
-	Aligned(std::size_t alignment, std::initializer_list<T> const & list)
+	Aligned(std::size_t alignment, std::size_t size, std::initializer_list<T> const & list)
 		: AlignedBase<T, -1>(alignment)
-		, size(list.size())
+		, size(size)
 		, pBytes(new uint8_t[ALIGNED_ARRAY_BYTES_SIZE(T, sizeOfTPaddedToAlignment, size)])
 		, pFirstElement(ALIGNED_POINTER(T, pBytes.get(), sizeOfTPaddedToAlignment))
 	{
+		if (size < list.size())
+			throw InitializerListLongerThanSizeException();
 		int i = 0;
 		for (auto it = list.begin(); it != list.end(); ++it)
 			this->element(i++) = *it;
 	}
+	Aligned(std::size_t alignment, std::initializer_list<T> const & list)
+		: Aligned(alignment, list.size(), list)
+	{}
 	~Aligned() {
 		AlignedArrayDestructorCaller<T>::Call(size, pFirstElement, sizeOfTPaddedToAlignment);
 	}
